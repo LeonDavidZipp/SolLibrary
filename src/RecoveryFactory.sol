@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import {OwnableMultisigNonce} from "./OwnableMultisigNonce.sol";
 import {Recovery} from "./Recovery.sol";
+import {IAllowanceTransfer} from "permit2/src/interfaces/IAllowanceTransfer.sol";
 
 contract RecoveryFactory is OwnableMultisigNonce {
     /* ********************************************************************** */
@@ -21,6 +22,8 @@ contract RecoveryFactory is OwnableMultisigNonce {
     /* Errors                                                                 */
     /* ********************************************************************** */
     error InsufficientFee();
+    error InvalidAddress();
+    error RecoveryExists(address owner, address recovery);
 
     /* ********************************************************************** */
     /* Fallback Functions                                                     */
@@ -32,11 +35,11 @@ contract RecoveryFactory is OwnableMultisigNonce {
     /* ********************************************************************** */
     /* Constructor                                                            */
     /* ********************************************************************** */
-    constructor(address initialOwner, address[4] memory initialSigners, uint256 fee)
+    constructor(address initialOwner, address[4] memory initialSigners, uint256 initialFee)
         payable
         OwnableMultisigNonce(initialOwner, initialSigners)
     {
-        _fee = fee;
+        _fee = initialFee;
     }
 
     /* ********************************************************************** */
@@ -45,11 +48,11 @@ contract RecoveryFactory is OwnableMultisigNonce {
     function createRecovery(
         address initialOwner,
         address initialBackup,
-        Recovery.PermitBatch calldata permitBatch,
+        IAllowanceTransfer.PermitBatch calldata permitBatch,
         bytes calldata signature,
         uint256 nonce
     ) external payable {
-        if (msg.amount < fee()) {
+        if (msg.value < fee()) {
             revert InsufficientFee();
         }
         if (initialOwner == address(0)) {
@@ -94,9 +97,9 @@ contract RecoveryFactory is OwnableMultisigNonce {
         }
     }
 
-    function setFee(uint256 fee) external onlyOwner {
+    function setFee(uint256 newFee) external onlyOwner {
         assembly {
-            sstore(_fee.slot, fee)
+            sstore(_fee.slot, newFee)
         }
     }
 

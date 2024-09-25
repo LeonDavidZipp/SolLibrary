@@ -2,8 +2,8 @@
 pragma solidity ^0.8.13;
 
 import {TwoUnequalOwnable} from "./TwoUnequalOwnable.sol";
-// import {IAllowanceTransfer} from "@Permit2/src/interfaces/IAllowanceTransfer.sol";
-import {IAllowanceTransfer} from "../lib/permit2/src/interfaces/IAllowanceTransfer.sol";
+import {IAllowanceTransfer} from "permit2/src/interfaces/IAllowanceTransfer.sol";
+// import {IAllowanceTransfer} from "../lib/permit2/src/interfaces/IAllowanceTransfer.sol";
 
 /**
  * @title Recoverable
