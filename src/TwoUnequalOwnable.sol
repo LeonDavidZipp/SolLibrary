@@ -13,6 +13,7 @@ contract TwoUnequalOwnable is Context {
     address private _backup;
 
     error Unauthorized(address account);
+    error InvalidAddress();
 
     modifier onlyOwner() {
         address sender = _msgSender();
@@ -41,7 +42,7 @@ contract TwoUnequalOwnable is Context {
     /* ********************************************************************** */
     /* Constructor                                                            */
     /* ********************************************************************** */
-    constructor(address initialOwner, address initialBackup) {
+    constructor(address initialOwner, address initialBackup) payable {
         _owner = initialOwner;
         assembly {
             sstore(_backup.slot, initialBackup)
@@ -64,7 +65,11 @@ contract TwoUnequalOwnable is Context {
     /* ********************************************************************** */
     /* Owner functions                                                        */
     /* ********************************************************************** */
-    function changeBackup(address newBackup) public onlyOwner {
+    function changeBackup(address newBackup) external onlyOwner {
+        if (newBackup == address(0)) {
+            revert InvalidAddress();
+        }
+
         assembly {
             sstore(_backup.slot, newBackup)
         }
