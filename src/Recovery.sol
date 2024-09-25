@@ -24,10 +24,10 @@ contract Recovery is TwoUnequalOwnable {
         _PERMIT_2.permit(initialOwner, permitBatch, signature);
     }
 
-    function addTokenPermits(
-        IAllowanceTransfer.PermitBatch memory permitBatch,
-        bytes memory signature
-    ) external onlyOwner {
+    function addTokenPermits(IAllowanceTransfer.PermitBatch memory permitBatch, bytes memory signature)
+        external
+        onlyOwner
+    {
         _PERMIT_2.permit(owner(), permitBatch, signature);
     }
 

@@ -22,6 +22,22 @@ contract TwoUnequalOwnable is Context {
         _;
     }
 
+    modifier onlyBackup() {
+        address sender = _msgSender();
+        if (sender != backup()) {
+            revert Unauthorized(sender);
+        }
+        _;
+    }
+
+    modifier onlyOwners() {
+        address sender = _msgSender();
+        if (sender != owner() && sender != backup()) {
+            revert Unauthorized(sender);
+        }
+        _;
+    }
+
     /* ********************************************************************** */
     /* Constructor                                                            */
     /* ********************************************************************** */
@@ -39,7 +55,7 @@ contract TwoUnequalOwnable is Context {
         a = _owner;
     }
 
-    function backup() external view onlyOwner returns (address a) {
+    function backup() public view returns (address a) {
         assembly {
             a := sload(_backup.slot)
         }
