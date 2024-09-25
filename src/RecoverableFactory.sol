@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import {OwnableMultisigNonce} from "./OwnableMultisigNonce.sol";
 import {Recoverable} from "./Recoverable.sol";
 import {IAllowanceTransfer} from "permit2/src/interfaces/IAllowanceTransfer.sol";
+import "@openzeppelin/contracts/utils/Create2.sol";
 
 contract RecoverableFactory is OwnableMultisigNonce {
     /* ********************************************************************** */
@@ -50,8 +51,6 @@ contract RecoverableFactory is OwnableMultisigNonce {
     function createRecovery(
         address initialOwner,
         address initialBackup,
-        IAllowanceTransfer.PermitBatch calldata permitBatch,
-        bytes calldata signature,
         uint256 nonce
     ) external payable {
         if (msg.value < fee()) {
@@ -67,7 +66,7 @@ contract RecoverableFactory is OwnableMultisigNonce {
             revert RecoveryExists(initialOwner, recoveryAddress(initialOwner));
         }
 
-        Recoverable recovery = new Recoverable(initialOwner, initialBackup, permitBatch, signature);
+        Recoverable recovery = new Recoverable(initialOwner, initialBackup);
 
         address newAddr = address(recovery);
         _recoveries.push(newAddr);
@@ -78,7 +77,7 @@ contract RecoverableFactory is OwnableMultisigNonce {
         _useCheckedNonce(_msgSender(), nonce);
     }
 
-    function recoverieAddresses() public view returns (address[] memory r) {
+    function recoveryAddresses() public view returns (address[] memory r) {
         r = _recoveries;
     }
 
