@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import { Context } from "@openzeppelin/contracts/utils/Context.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
 /**
  * @title Multisig
@@ -46,17 +46,11 @@ contract OwnableMultisig is Context {
     event OwnerChangeRetracted(address indexed by);
     event OwnerChangeAborted();
     event OwnerChanged(address indexed oldOwner, address indexed newOwner);
-    event SignerChangeProposed(
-        address indexed by,
-        address indexed replacedSigner,
-        address indexed newSigner
-    );
+    event SignerChangeProposed(address indexed by, address indexed replacedSigner, address indexed newSigner);
     event SignerChangeConfirmed(address indexed by);
     event SignerChangeRetracted(address indexed by);
     event SignerChangeAborted();
-    event SignerChanged(
-        address indexed replacedSigner, address indexed newSigner
-    );
+    event SignerChanged(address indexed replacedSigner, address indexed newSigner);
     event ContractBlocked(address indexed by);
     event ContractUnblockConfirmed(address indexed by);
     event ContractUnblocked();
@@ -98,10 +92,7 @@ contract OwnableMultisig is Context {
         _;
     }
 
-    constructor(
-        address initialOwner,
-        address[4] memory initialSigners
-    )
+    constructor(address initialOwner, address[4] memory initialSigners)
         payable
         validAddress(initialOwner)
         validAddress(initialSigners[0])
@@ -201,11 +192,7 @@ contract OwnableMultisig is Context {
      * @param newOwner: the address of the new owner
      * visibility public because of parent contract.
      */
-    function transferOwnership(address newOwner)
-        internal
-        virtual
-        validAddress(newOwner)
-    {
+    function transferOwnership(address newOwner) internal virtual validAddress(newOwner) {
         address sender = _msgSender();
         uint256 i = _signerIndex(sender);
         if (i > 4) {
@@ -310,10 +297,12 @@ contract OwnableMultisig is Context {
      * proposes a new signer change transaction.
      * @param newSigner: the address of the new signer
      */
-    function transferSignership(
-        address oldSigner,
-        address newSigner
-    ) internal virtual validAddress(oldSigner) validAddress(newSigner) {
+    function transferSignership(address oldSigner, address newSigner)
+        internal
+        virtual
+        validAddress(oldSigner)
+        validAddress(newSigner)
+    {
         address sender = _msgSender();
         uint256 i = _signerIndex(sender);
         if (i > 4) {
@@ -481,10 +470,7 @@ contract OwnableMultisig is Context {
      * @param bitmap: the bitmap to check
      * @param reqCount: the number of signers required (including owner)
      */
-    function _bitmapSigned(
-        uint256 bitmap,
-        uint256 reqCount
-    ) internal pure returns (bool result) {
+    function _bitmapSigned(uint256 bitmap, uint256 reqCount) internal pure returns (bool result) {
         assembly {
             let count := 0
             if and(bitmap, shl(1, 1)) { count := add(count, 1) }

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import { OwnableMultisig } from "./OwnableMultisig.sol";
-import { Nonces } from "@openzeppelin/contracts/utils/Nonces.sol";
+import {OwnableMultisig} from "./OwnableMultisig.sol";
+import {Nonces} from "@openzeppelin/contracts/utils/Nonces.sol";
 
 /**
  * @title Multisig
@@ -41,10 +41,7 @@ contract OwnableMultisigNonce is OwnableMultisig, Nonces {
     address private _pendingSigner; // the address of the pending signer
     address[4] private _signers; // An array of addresses required to sign important transactions.
 
-    constructor(
-        address initialOwner,
-        address[4] memory initialSigners
-    )
+    constructor(address initialOwner, address[4] memory initialSigners)
         payable
         OwnableMultisig(initialOwner, initialSigners)
         validAddress(initialOwner)
@@ -101,11 +98,7 @@ contract OwnableMultisigNonce is OwnableMultisig, Nonces {
      * proposes a new signer change transaction.
      * @param newSigner: the address of the new signer
      */
-    function transferSignershipNonce(
-        address oldSigner,
-        address newSigner,
-        uint256 nonce
-    ) external {
+    function transferSignershipNonce(address oldSigner, address newSigner, uint256 nonce) external {
         transferSignership(oldSigner, newSigner);
         _useCheckedNonce(_msgSender(), nonce);
     }
