@@ -2,14 +2,15 @@
 pragma solidity ^0.8.13;
 
 import {OwnableMultisigNonce} from "./OwnableMultisigNonce.sol";
-import {Recovery} from "./Recovery.sol";
+import {Recoverable} from "./Recoverable.sol";
 import {IAllowanceTransfer} from "permit2/src/interfaces/IAllowanceTransfer.sol";
 
-contract RecoveryFactory is OwnableMultisigNonce {
+contract RecoverableFactory is OwnableMultisigNonce {
     /* ********************************************************************** */
     /* State Variables                                                        */
     /* ********************************************************************** */
     uint256 private _fee;
+    uint256 private _gasLimit;
     address[] private _recoveries;
     mapping(address => address) private _recoveryMap;
 
@@ -35,11 +36,12 @@ contract RecoveryFactory is OwnableMultisigNonce {
     /* ********************************************************************** */
     /* Constructor                                                            */
     /* ********************************************************************** */
-    constructor(address initialOwner, address[4] memory initialSigners, uint256 initialFee)
+    constructor(address initialOwner, address[4] memory initialSigners, uint256 initialFee, uint256 initialGasLimit)
         payable
         OwnableMultisigNonce(initialOwner, initialSigners)
     {
         _fee = initialFee;
+        _gasLimit = initialGasLimit;
     }
 
     /* ********************************************************************** */
@@ -65,7 +67,7 @@ contract RecoveryFactory is OwnableMultisigNonce {
             revert RecoveryExists(initialOwner, recoveryAddress(initialOwner));
         }
 
-        Recovery recovery = new Recovery(initialOwner, initialBackup, permitBatch, signature);
+        Recoverable recovery = new Recoverable(initialOwner, initialBackup, permitBatch, signature);
 
         address newAddr = address(recovery);
         _recoveries.push(newAddr);
@@ -103,7 +105,22 @@ contract RecoveryFactory is OwnableMultisigNonce {
         }
     }
 
-    function withdrawBalance(address payable to) external onlyOwner {
-        to.transfer(address(this).balance - 21000);
+    /* ********************************************************************** */
+    /* Withdraw Functions                                                     */
+    /* ********************************************************************** */
+    function withdrawBalance(address to) external onlyOwner {
+        payable(to).transfer(address(this).balance - gasLimit());
+    }
+
+    function gasLimit() public view returns (uint256 g) {
+        assembly {
+            g := sload(_gasLimit.slot)
+        }
+    }
+
+    function setGasLimit(uint256 newGasLimit) external onlyOwner {
+        assembly {
+            sstore(_gasLimit.slot, newGasLimit)
+        }
     }
 }
