@@ -11,9 +11,9 @@ contract RecoverableFactory is OwnableMultisigNonce {
     /* State Variables                                                        */
     /* ********************************************************************** */
     uint256 private _fee;
-    uint256 private _gasLimit;
     address[] private _recoveries;
     mapping(address => address) private _recoveryMap;
+    uint256 private _amount;
     uint256 private _withdrawBitmap;
     uint256 private _abortWithdrawBitmap;
     uint256 private _withdrawAllBitmap;
@@ -23,6 +23,7 @@ contract RecoverableFactory is OwnableMultisigNonce {
     /* Events                                                                 */
     /* ********************************************************************** */
     event RecoveryCreated(address indexed owner, address indexed backup, address recovery);
+    event WithdrawalProposed(uint256 amount);
 
     /* ********************************************************************** */
     /* Errors                                                                 */
@@ -30,6 +31,9 @@ contract RecoverableFactory is OwnableMultisigNonce {
     error InsufficientFee();
     error InvalidAddress(address);
     error RecoveryExists(address owner, address recovery);
+
+    error WithdrawalNotProposed();
+    error WithdrawalInProgress();
 
     /* ********************************************************************** */
     /* Fallback Functions                                                     */
@@ -47,7 +51,6 @@ contract RecoverableFactory is OwnableMultisigNonce {
     {
         assembly {
             sstore(_fee.slot, initialFee)
-            sstore(_gasLimit.slot, initialGasLimit)
             sstore(_withdrawBitmap.slot, 1)
             sstore(_abortWithdrawBitmap.slot, 1)
             sstore(_withdrawAllBitmap.slot, 1)
@@ -116,31 +119,79 @@ contract RecoverableFactory is OwnableMultisigNonce {
     /* ********************************************************************** */
     /* Withdraw Functions                                                     */
     /* ********************************************************************** */
-    function proposeWithdraw(uint256 nonce) external onlyOwner {
-        address sender = _msgSender();
-
-        if (withdrawAllBitmap() != 1) {
-            revert SignerChangeInProgress();
-        }
-    }
-    
-    function proposeWithdrawAll(uint256 nonce) external onlyOwner {
-        payable(owner()).transfer(address(this).balance - gasLimit());
+    function amount() public view returns (uint256 a) {
+        a = _amount;
     }
 
-    function confirmWithdraw(uint256 nonce) external onlySigner {
+    function proposeWithdraw(uint256 amount, uint256 nonce) external onlyOwner {
         address sender = _msgSender();
         uint256 i = _signerIndex(sender);
         if (i > 4) {
             revert UnauthorizedAccount(sender);
         }
-        if (changeSignerBitmap() != 1) {
-            revert SignerChangeInProgress();
+
+        if (withdrawAllBitmap() != 1) {
+            revert WithdrawalInProgress();
         }
+        uint256 bm = withdrawBitmap();
+        if (bm != 1) {
+            revert WithdrawalInProgress();
+        }
+
+        assembly {
+            sstore(_withdrawBitmap.slot, or(bm, shl(add(i, 1), 1)))
+            sstore(_amount.slot, amount)
+        }
+
+        emit WithdrawalProposed(amount);
+
+        _useCheckedNonce(sender, nonce);
+    }
+
+    function confirmWithdraw(uint256 nonce) external {
+        address sender = _msgSender();
+        uint256 i = _signerIndex(sender);
+        if (i > 4) {
+            revert UnauthorizedAccount(sender);
+        }
+
+        if (withdrawAllBitmap() != 1) {
+            revert WithdrawalInProgress();
+        }
+        uint256 bm = withdrawBitmap();
+        if (bm != 1) {
+            revert WithdrawalInProgress();
+        }
+
+        assembly {
+            sstore(_withdrawBitmap.slot, or(bm, shl(add(i, 1), 1)))
+        }
+
+        _useCheckedNonce(sender, nonce);
+    }
+
+    function withdraw(uint256 nonce) external onlyOwner {
+        if (_bitmapSigned(withdrawBitmap(), 3) == false) {
+            revert NotEnoughSignatures();
+        }
+
+        payable(owner()).transfer(amount());
+
+        assembly {
+            sstore(_withdrawBitmap.slot, 1)
+            sstore(_amount.slot, 0)
+        }
+
+        _useCheckedNonce(owner(), nonce);
     }
 
     function abortWithdraw(uint256 nonce) external onlyOwner {
+        assembly {
+            sstore(_withdrawBitmap.slot, 1)
+            sstore(_amount.slot, 0)
+        }
 
+        _useCheckedNonce(owner(), nonce);
     }
 
     function withdrawBitmap() public view returns (uint256 w) {
@@ -155,6 +206,78 @@ contract RecoverableFactory is OwnableMultisigNonce {
         }
     }
 
+    /* ********************************************************************** */
+    /* Withdraw All Functions                                                 */
+    /* ********************************************************************** */
+    function proposeWithdrawAll(uint256 nonce) external onlyOwner {
+        address sender = _msgSender();
+        uint256 i = _signerIndex(sender);
+        if (i > 4) {
+            revert UnauthorizedAccount(sender);
+        }
+
+        if (withdrawBitmap() != 1) {
+            revert WithdrawalInProgress();
+        }
+        uint256 bm = withdrawAllBitmap();
+        if (bm != 1) {
+            revert WithdrawalInProgress();
+        }
+
+        assembly {
+            sstore(_withdrawAllBitmap.slot, or(bm, shl(add(i, 1), 1)))
+            sstore(_amount.slot, amount)
+        }
+
+        emit WithdrawalProposed(amount);
+
+        _useCheckedNonce(sender, nonce);
+    }
+
+    function confirmWithdrawAll(uint256 nonce) external {
+        address sender = _msgSender();
+        uint256 i = _signerIndex(sender);
+        if (i > 4) {
+            revert UnauthorizedAccount(sender);
+        }
+
+        if (withdrawBitmap() != 1) {
+            revert WithdrawalInProgress();
+        }
+        uint256 bm = withdrawAllBitmap();
+        if (bm != 1) {
+            revert WithdrawalInProgress();
+        }
+
+        assembly {
+            sstore(_withdrawAllBitmap.slot, or(bm, shl(add(i, 1), 1)))
+        }
+
+        _useCheckedNonce(sender, nonce);
+    }
+
+    function withdrawAll(uint256 nonce) external onlyOwner {
+        if (_bitmapSigned(withdrawAllBitmap(), 3) == false) {
+            revert NotEnoughSignatures();
+        }
+
+        payable(owner()).transfer(address(this).balance);
+
+        assembly {
+            sstore(_withdrawAllBitmap.slot, 1)
+        }
+
+        _useCheckedNonce(owner(), nonce);
+    }
+
+    function abortWithdrawAll(uint256 nonce) external onlyOwner {
+        assembly {
+            sstore(_withdrawAllBitmap.slot, 1)
+        }
+
+        _useCheckedNonce(owner(), nonce);
+    }
+
     function withdrawAllBitmap() public view returns (uint256 w) {
         assembly {
             w := sload(_withdrawalAllBitmap.slot)
@@ -164,21 +287,6 @@ contract RecoverableFactory is OwnableMultisigNonce {
     function abortWithdrawAllBitmap() public view returns (uint256 a) {
         assembly {
             a := sload(_abortWithdrawalAllBitmap.slot)
-        }
-    }
-
-    /* ********************************************************************** */
-    /* Gas Limit Functions                                                    */
-    /* ********************************************************************** */
-    function gasLimit() public view returns (uint256 g) {
-        assembly {
-            g := sload(_gasLimit.slot)
-        }
-    }
-
-    function setGasLimit(uint256 newGasLimit) external onlyOwner notBlocked {
-        assembly {
-            sstore(_gasLimit.slot, newGasLimit)
         }
     }
 }
