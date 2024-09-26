@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import {MultisigWalletNonce} from "./MultisigWalletNonce.sol";
 import {Recoverable} from "./Recoverable.sol";
+import {Test, console} from "forge-std/Test.sol";
 
 contract RecoverableFactory is MultisigWalletNonce {
     /* ********************************************************************** */
@@ -86,6 +87,7 @@ contract RecoverableFactory is MultisigWalletNonce {
     }
 
     function setFee(uint256 newFee, uint256 nonce) external onlyOwner notBlocked {
+        console.log("isBlocked", isBlocked());
         assembly {
             sstore(_fee.slot, newFee)
         }

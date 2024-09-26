@@ -29,35 +29,10 @@ import {Nonces} from "@openzeppelin/contracts/utils/Nonces.sol";
  * 3. As the last of 4 signers confirms unblocking, the contract is unblocked.
  */
 contract OwnableMultisigNonce is OwnableMultisig, Nonces {
-    address internal _owner; // owner of contract
-    bool internal _isBlocked; // flag to block everything until set to false again
-    uint8 internal _unblockBitmap; // bitmap for the unblock transaction
-    address internal _pendingOwner; // the address of the pending owner
-    uint8 internal _changeOwnerBitmap; // bitmap for the change owner transaction
-    uint8 internal _abortChangeOwnerBitmap; // bitmap for the abort change owner transaction
-    uint8 internal _changeSignerBitmap; // bitmap for the change signer transaction
-    uint8 internal _abortChangeSignerBitmap; // bitmap for the abort change signer transaction
-    uint8 internal _replacedSignerIndex; // the index of the replaced signer
-    address internal _pendingSigner; // the address of the pending signer
-    address[4] internal _signers; // An array of addresses required to sign important transactions.
-
     constructor(address initialOwner, address[4] memory initialSigners)
         payable
         OwnableMultisig(initialOwner, initialSigners)
-        validAddress(initialOwner)
-        validAddress(initialSigners[0])
-        validAddress(initialSigners[1])
-        validAddress(initialSigners[2])
-        validAddress(initialSigners[3])
-    {
-        _signers = initialSigners;
-        _pendingOwner = address(0x1);
-        _pendingSigner = address(0x1);
-        _changeOwnerBitmap = 1; // for gas saving
-        _changeSignerBitmap = 1; // for gas saving
-        _isBlocked = false;
-        _unblockBitmap = 1;
-    }
+    {}
 
     /**
      * proposes a new owner change transaction by the owner.

@@ -7,9 +7,6 @@ contract MultisigWalletNonce is OwnableMultisigNonce {
     /* ********************************************************************** */
     /* State Variables                                                        */
     /* ********************************************************************** */
-    uint256 internal _fee;
-    address[] internal _recoveries;
-    mapping(address => address) internal _recoveryMap;
     uint256 internal _amount;
     uint256 internal _withdrawBitmap;
     uint256 internal _abortWithdrawBitmap;
@@ -47,6 +44,7 @@ contract MultisigWalletNonce is OwnableMultisigNonce {
             sstore(_abortWithdrawBitmap.slot, 1)
             sstore(_withdrawAllBitmap.slot, 1)
             sstore(_abortWithdrawAllBitmap.slot, 1)
+            // sstore(_isBlocked.slot, 0)
         }
     }
 

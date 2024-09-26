@@ -9,8 +9,8 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
  *      where owner has more power than backup, but backup can block owner.
  */
 contract TwoUnequalOwnable is Context {
-    address private immutable _owner;
-    address private _backup;
+    address internal immutable _owner;
+    address internal _backup;
 
     error Unauthorized(address account);
     error InvalidAddress();

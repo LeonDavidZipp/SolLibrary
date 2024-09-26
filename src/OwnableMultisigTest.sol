@@ -145,7 +145,7 @@ contract OwnableMultisig is Context {
         }
     }
 
-    function replacedSignerIndex() internal view returns (uint256 i) {
+    function replacedSignerIndex() public view returns (uint256 i) {
         assembly {
             i := sload(_replacedSignerIndex.slot)
         }
@@ -156,7 +156,9 @@ contract OwnableMultisig is Context {
     }
 
     function pendingOwner() public view returns (address a) {
-        a = _pendingOwner;
+        assembly {
+            a := sload(_pendingOwner.slot)
+        }
     }
 
     function pendingSigner() public view returns (address a) {
@@ -170,10 +172,12 @@ contract OwnableMultisig is Context {
     }
 
     function isBlocked() public view returns (bool b) {
-        b = _isBlocked;
+        assembly {
+            b := sload(_isBlocked.slot)
+        }
     }
 
-    function unblockBitmap() internal view returns (uint256 i) {
+    function unblockBitmap() public view returns (uint256 i) {
         assembly {
             i := sload(_unblockBitmap.slot)
         }
@@ -184,7 +188,7 @@ contract OwnableMultisig is Context {
      * @param newOwner: the address of the new owner
      * visibility public because of parent contract.
      */
-    function transferOwnership(address newOwner) internal virtual validAddress(newOwner) {
+    function transferOwnership(address newOwner) public virtual validAddress(newOwner) {
         address sender = _msgSender();
         uint256 i = _signerIndex(sender);
         if (i > 4) {
@@ -208,7 +212,7 @@ contract OwnableMultisig is Context {
      * aborts the owner change transaction.
      * Needs 3 votes to abort the transaction.
      */
-    function abortTransferOwnership() internal virtual {
+    function abortTransferOwnership() public virtual {
         address sender = _msgSender();
         uint256 i = _signerIndex(sender);
         if (i > 4) {
@@ -242,7 +246,7 @@ contract OwnableMultisig is Context {
     /**
      * confirms the owner change transaction for the given caller if it is signer.
      */
-    function confirmTransferOwnership() internal virtual {
+    function confirmTransferOwnership() public virtual {
         address sender = _msgSender();
         uint256 i = _signerIndex(sender);
         if (i > 4) {
@@ -264,7 +268,7 @@ contract OwnableMultisig is Context {
      * the bitmap is reset to 1.
      * visibility public because of parent contract.
      */
-    function acceptOwnership() internal virtual {
+    function acceptOwnership() public virtual {
         address sender = _msgSender();
         address newOwner = pendingOwner();
         if (newOwner != sender) {
@@ -290,7 +294,7 @@ contract OwnableMultisig is Context {
      * @param newSigner: the address of the new signer
      */
     function transferSignership(address oldSigner, address newSigner)
-        internal
+        public
         virtual
         validAddress(oldSigner)
         validAddress(newSigner)
@@ -321,7 +325,7 @@ contract OwnableMultisig is Context {
      * aborts the signer change transaction.
      * Needs 3 votes to abort the transaction.
      */
-    function abortTransferSignership() internal virtual {
+    function abortTransferSignership() public virtual {
         address sender = _msgSender();
         uint256 i = _signerIndex(sender);
         if (i > 4) {
@@ -356,7 +360,7 @@ contract OwnableMultisig is Context {
     /**
      * confirms the signer change transaction for the given caller if it is signer.
      */
-    function confirmTransferSignership() internal virtual {
+    function confirmTransferSignership() public virtual {
         address sender = _msgSender();
         uint256 i = _signerIndex(sender);
         if (i > 4) {
@@ -377,7 +381,7 @@ contract OwnableMultisig is Context {
      * @dev The new signer accepts the signership transfer.
      * The bitmap is reset to 1.
      */
-    function acceptSignership() internal virtual {
+    function acceptSignership() public virtual {
         address sender = _msgSender();
         if (sender != pendingSigner()) {
             revert UnauthorizedAccount(sender);
@@ -400,20 +404,22 @@ contract OwnableMultisig is Context {
     /**
      * blocks the contract from executing frequent transactions until unblocked.
      */
-    function _block() internal {
+    function _block() public {
         address sender = _msgSender();
         if (_signerIndex(sender) > 4) {
             revert UnauthorizedAccount(sender);
         }
 
-        _isBlocked = true;
+        assembly {
+            sstore(_isBlocked.slot, 1)
+        }
         emit ContractBlocked(sender);
     }
 
     /**
      * unblocks the contract from executing any transactions.
      */
-    function _unblock() internal {
+    function _unblock() public {
         address sender = _msgSender();
         uint256 i = _signerIndex(sender);
         if (i > 4) {
@@ -430,8 +436,8 @@ contract OwnableMultisig is Context {
         }
         emit ContractUnblockConfirmed(sender);
         if (_bitmapSigned(bm, 3)) {
-            _isBlocked = false;
             assembly {
+                sstore(_isBlocked.slot, 0)
                 sstore(_unblockBitmap.slot, 1)
             }
             emit ContractUnblocked();
@@ -445,7 +451,7 @@ contract OwnableMultisig is Context {
     /**
      * @dev returns index of the signer in the signers array.
      */
-    function _signerIndex(address signer) internal view returns (uint256 i) {
+    function _signerIndex(address signer) public view returns (uint256 i) {
         address[4] storage tempSigners = _signers;
         if (signer == owner()) i = 0;
         else if (signer == tempSigners[0]) i = 1;
@@ -460,7 +466,7 @@ contract OwnableMultisig is Context {
      * @param bitmap: the bitmap to check
      * @param reqCount: the number of signers required (including owner)
      */
-    function _bitmapSigned(uint256 bitmap, uint256 reqCount) internal pure returns (bool result) {
+    function _bitmapSigned(uint256 bitmap, uint256 reqCount) public pure returns (bool result) {
         assembly {
             let count := 0
             if and(bitmap, shl(1, 1)) { count := add(count, 1) }
