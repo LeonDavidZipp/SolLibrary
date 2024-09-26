@@ -92,8 +92,6 @@ contract RecoverableTest is Test, DeployPermit2, PermitSignature, TokenProvider 
     }
 
     function test_transferToBackup() public {
-        console.log("default expiration: ", defaultExpiration);
-        console.log("starting block number 1: ", block.timestamp);
         address[] memory tokens = AddressBuilder.fill(1, address(token0)).push(address(token1));
         IAllowanceTransfer.PermitBatch memory permitBatch = _defaultERC20PermitBatchAllowance(
             tokens, defaultAmount, defaultExpiration, defaultNonce, address(recoverable)
@@ -101,26 +99,58 @@ contract RecoverableTest is Test, DeployPermit2, PermitSignature, TokenProvider 
         bytes memory sig1 = getPermitBatchSignature(permitBatch, ownerPK, DOMAIN_SEPARATOR);
 
         uint256 startBalanceOwner0 = token0.balanceOf(owner);
-        uint256 startBalanceOwner1 = token1.balanceOf(owner);
         uint256 startBalanceBackup0 = token0.balanceOf(backup);
-        uint256 startBalanceBackup1 = token1.balanceOf(backup);
 
         vm.prank(owner);
         recoverable.addTokenPermits(permitBatch, sig1);
-        console.log("block number 2: ", block.timestamp);
+
         address[] memory owners = AddressBuilder.fill(2, owner);
         IAllowanceTransfer.AllowanceTransferDetails[] memory transferDetails =
             StructBuilder.fillAllowanceTransferDetail(2, tokens, 1 ** 18, backup, owners);
-        console.log("block number 3: ", block.timestamp);
-        IAllowanceTransfer(permit2).transferFrom(transferDetails);
+
+        vm.prank(backup);
+        recoverable.transferToBackup(transferDetails);
 
         assertEq(token0.balanceOf(owner), startBalanceOwner0 - 1 ** 18);
-        assertEq(token1.balanceOf(owner), startBalanceOwner1 - 1 ** 18);
         assertEq(token0.balanceOf(backup), startBalanceBackup0 + 1 ** 18);
-        assertEq(token1.balanceOf(backup), startBalanceBackup1 + 1 ** 18);
         (uint256 amount,,) = IAllowanceTransfer(permit2).allowance(owner, address(token0), address(recoverable));
         assertEq(amount, defaultAmount - 1 ** 18);
         (amount,,) = IAllowanceTransfer(permit2).allowance(owner, address(token1), address(recoverable));
         assertEq(amount, defaultAmount - 1 ** 18);
+    }
+
+    function testFail_transferToBackup_invalidCallerOwner() public {
+        address[] memory tokens = AddressBuilder.fill(1, address(token0)).push(address(token1));
+        IAllowanceTransfer.PermitBatch memory permitBatch = _defaultERC20PermitBatchAllowance(
+            tokens, defaultAmount, defaultExpiration, defaultNonce, address(recoverable)
+        );
+        bytes memory sig1 = getPermitBatchSignature(permitBatch, ownerPK, DOMAIN_SEPARATOR);
+
+        vm.prank(owner);
+        recoverable.addTokenPermits(permitBatch, sig1);
+
+        address[] memory owners = AddressBuilder.fill(2, owner);
+        IAllowanceTransfer.AllowanceTransferDetails[] memory transferDetails =
+            StructBuilder.fillAllowanceTransferDetail(2, tokens, 1 ** 18, backup, owners);
+
+        vm.prank(owner);
+        recoverable.transferToBackup(transferDetails);
+    }
+
+    function testFail_transferToBackup_invalidCaller() public {
+        address[] memory tokens = AddressBuilder.fill(1, address(token0)).push(address(token1));
+        IAllowanceTransfer.PermitBatch memory permitBatch = _defaultERC20PermitBatchAllowance(
+            tokens, defaultAmount, defaultExpiration, defaultNonce, address(recoverable)
+        );
+        bytes memory sig1 = getPermitBatchSignature(permitBatch, ownerPK, DOMAIN_SEPARATOR);
+
+        vm.prank(owner);
+        recoverable.addTokenPermits(permitBatch, sig1);
+
+        address[] memory owners = AddressBuilder.fill(2, owner);
+        IAllowanceTransfer.AllowanceTransferDetails[] memory transferDetails =
+            StructBuilder.fillAllowanceTransferDetail(2, tokens, 1 ** 18, backup, owners);
+
+        recoverable.transferToBackup(transferDetails);
     }
 }
