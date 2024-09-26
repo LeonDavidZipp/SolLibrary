@@ -44,7 +44,6 @@ contract MultisigWalletNonce is OwnableMultisigNonce {
             sstore(_abortWithdrawBitmap.slot, 1)
             sstore(_withdrawAllBitmap.slot, 1)
             sstore(_abortWithdrawAllBitmap.slot, 1)
-            // sstore(_isBlocked.slot, 0)
         }
     }
 
