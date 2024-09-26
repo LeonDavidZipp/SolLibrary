@@ -29,6 +29,9 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
  * 3. As the last of 4 signers confirms unblocking, the contract is unblocked.
  */
 contract OwnableMultisig is Context {
+    /* ********************************************************************** */
+    /* State Variables                                                        */
+    /* ********************************************************************** */
     address internal _owner; // owner of contract
     address internal _pendingOwner; // the address of the pending owner
     bool internal _isBlocked; // flag to block everything until set to false again
@@ -41,6 +44,9 @@ contract OwnableMultisig is Context {
     address internal _pendingSigner; // the address of the pending signer
     address[4] internal _signers; // an array of addresses required to sign important transactions
 
+    /* ********************************************************************** */
+    /* Events                                                                 */
+    /* ********************************************************************** */
     event OwnerChangeProposed(address indexed by, address indexed newOwner);
     event OwnerChangeConfirmed(address indexed by);
     event OwnerChangeRetracted(address indexed by);
@@ -55,6 +61,9 @@ contract OwnableMultisig is Context {
     event ContractUnblockConfirmed(address indexed by);
     event ContractUnblocked();
 
+    /* ********************************************************************** */
+    /* Errors                                                                 */
+    /* ********************************************************************** */
     error InvalidAddress(address owner);
     error UnauthorizedAccount(address account);
     error InvalidOwnerCount();
@@ -67,6 +76,9 @@ contract OwnableMultisig is Context {
     error NotBlocked();
     error AlreadyBlocked();
 
+    /* ********************************************************************** */
+    /* Modifiers                                                              */
+    /* ********************************************************************** */
     modifier onlyOwner() {
         address sender = _msgSender();
         if (sender != owner()) {
@@ -92,6 +104,9 @@ contract OwnableMultisig is Context {
         _;
     }
 
+    /* ********************************************************************** */
+    /* Constructor                                                            */
+    /* ********************************************************************** */
     constructor(address initialOwner, address[4] memory initialSigners)
         payable
         validAddress(initialOwner)
@@ -112,9 +127,9 @@ contract OwnableMultisig is Context {
         _unblockBitmap = 1;
     }
 
-    /**
-     * getters
-     */
+    /* ********************************************************************** */
+    /* Getters                                                                */
+    /* ********************************************************************** */
     function owner() public view returns (address a) {
         assembly {
             a := sload(_owner.slot)
@@ -179,6 +194,9 @@ contract OwnableMultisig is Context {
         }
     }
 
+    /* ********************************************************************** */
+    /* Ownership Functions                                                    */
+    /* ********************************************************************** */
     /**
      * proposes a new owner change transaction by the owner.
      * @param newOwner: the address of the new owner
@@ -285,6 +303,9 @@ contract OwnableMultisig is Context {
         emit OwnerChanged(oldOwner, sender);
     }
 
+    /* ********************************************************************** */
+    /* Signership Functions                                                   */
+    /* ********************************************************************** */
     /**
      * proposes a new signer change transaction.
      * @param newSigner: the address of the new signer
@@ -397,6 +418,9 @@ contract OwnableMultisig is Context {
         emit SignerChanged(oldSigner, sender);
     }
 
+    /* ********************************************************************** */
+    /* Blocking Functions                                                     */
+    /* ********************************************************************** */
     /**
      * blocks the contract from executing frequent transactions until unblocked.
      */
@@ -442,6 +466,9 @@ contract OwnableMultisig is Context {
         }
     }
 
+    /* ********************************************************************** */
+    /* Internal Functions                                                     */
+    /* ********************************************************************** */
     /**
      * @dev returns index of the signer in the signers array.
      */

@@ -29,11 +29,17 @@ import {Nonces} from "@openzeppelin/contracts/utils/Nonces.sol";
  * 3. As the last of 4 signers confirms unblocking, the contract is unblocked.
  */
 contract OwnableMultisigNonce is OwnableMultisig, Nonces {
+    /* ********************************************************************** */
+    /* Constructor                                                            */
+    /* ********************************************************************** */
     constructor(address initialOwner, address[4] memory initialSigners)
         payable
         OwnableMultisig(initialOwner, initialSigners)
     {}
 
+    /* ********************************************************************** */
+    /* Ownership Functions                                                    */
+    /* ********************************************************************** */
     /**
      * proposes a new owner change transaction by the owner.
      * @param newOwner: the address of the new owner
@@ -69,6 +75,9 @@ contract OwnableMultisigNonce is OwnableMultisig, Nonces {
         _useCheckedNonce(_msgSender(), nonce);
     }
 
+    /* ********************************************************************** */
+    /* Signership Functions                                                   */
+    /* ********************************************************************** */
     /**
      * proposes a new signer change transaction.
      * @param newSigner: the address of the new signer
@@ -103,6 +112,9 @@ contract OwnableMultisigNonce is OwnableMultisig, Nonces {
         _useCheckedNonce(_msgSender(), nonce);
     }
 
+    /* ********************************************************************** */
+    /* Blocking Functions                                                     */
+    /* ********************************************************************** */
     /**
      * blocks the contract from executing frequent transactions until unblocked.
      */
