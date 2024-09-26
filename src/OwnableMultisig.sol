@@ -55,8 +55,8 @@ contract OwnableMultisig is Context {
     event ContractUnblockConfirmed(address indexed by);
     event ContractUnblocked();
 
+    error InvalidAddress(address owner);
     error UnauthorizedAccount(address account);
-    error InvalidOwner(address owner);
     error InvalidOwnerCount();
     error OwnerChangeNotProposed();
     error OwnerChangeInProgress();
@@ -84,10 +84,10 @@ contract OwnableMultisig is Context {
 
     modifier validAddress(address account) {
         if (account == address(0)) {
-            revert InvalidOwner(account);
+            revert InvalidAddress(account);
         }
         if (account == address(0x1)) {
-            revert InvalidOwner(account);
+            revert InvalidAddress(account);
         }
         _;
     }
@@ -152,11 +152,7 @@ contract OwnableMultisig is Context {
     }
 
     function replacedSigner() public view returns (address s) {
-        assembly {
-            let i := sload(_replacedSignerIndex.slot)
-            if gt(i, 3) { revert(0, 0) }
-            s := sload(add(_signers.slot, i))
-        }
+        s = _signers[replacedSignerIndex()];
     }
 
     function pendingOwner() public view returns (address a) {
