@@ -18,6 +18,13 @@ contract RecoverableFactoryTest is Test {
     }
 
     function test_constructor() public view {
+        address[4] memory _signers = recoverableFactory.signers();
+
+        assertEq(owner, recoverableFactory.owner());
+        assertEq(signers[0], _signers[0]);
+        assertEq(signers[1], _signers[1]);
+        assertEq(signers[2], _signers[2]);
+        assertEq(signers[3], _signers[3]);
         assertEq(fee, recoverableFactory.fee());
     }
 
@@ -30,13 +37,13 @@ contract RecoverableFactoryTest is Test {
 
     function testFail_setFee_notOwner() public {
         uint256 newFee = 0.05 ether;
-        vm.startPrank(owner);
-        recoverableFactory.setFee(newFee, recoverableFactory.nonces(owner));
+        vm.startPrank(signers[0]);
+        recoverableFactory.setFee(newFee, recoverableFactory.nonces(signers[0]));
         vm.stopPrank();
     }
 
     function testFail_setFee_blocked() public {
-        vm.startPrank(signers[0]);
+        vm.startPrank(owner);
         recoverableFactory.blockNonce(recoverableFactory.nonces(owner));
         recoverableFactory.setFee(0.05 ether, recoverableFactory.nonces(owner));
         vm.stopPrank();
