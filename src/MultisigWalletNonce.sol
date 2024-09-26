@@ -7,14 +7,14 @@ contract MultisigWalletNonce is OwnableMultisigNonce {
     /* ********************************************************************** */
     /* State Variables                                                        */
     /* ********************************************************************** */
-    uint256 private _fee;
-    address[] private _recoveries;
-    mapping(address => address) private _recoveryMap;
-    uint256 private _amount;
-    uint256 private _withdrawBitmap;
-    uint256 private _abortWithdrawBitmap;
-    uint256 private _withdrawAllBitmap;
-    uint256 private _abortWithdrawAllBitmap;
+    uint256 internal _fee;
+    address[] internal _recoveries;
+    mapping(address => address) internal _recoveryMap;
+    uint256 internal _amount;
+    uint256 internal _withdrawBitmap;
+    uint256 internal _abortWithdrawBitmap;
+    uint256 internal _withdrawAllBitmap;
+    uint256 internal _abortWithdrawAllBitmap;
 
     /* ********************************************************************** */
     /* Events                                                                 */
@@ -57,7 +57,7 @@ contract MultisigWalletNonce is OwnableMultisigNonce {
         a = _amount;
     }
 
-    function proposeWithdraw(uint256 amount, uint256 nonce) external onlyOwner {
+    function proposeWithdraw(uint256 amount_, uint256 nonce) external onlyOwner {
         address sender = _msgSender();
         uint256 i = _signerIndex(sender);
         if (i > 4) {
@@ -74,10 +74,10 @@ contract MultisigWalletNonce is OwnableMultisigNonce {
 
         assembly {
             sstore(_withdrawBitmap.slot, or(bm, shl(add(i, 1), 1)))
-            sstore(_amount.slot, amount)
+            sstore(_amount.slot, amount_)
         }
 
-        emit WithdrawalProposed(amount);
+        emit WithdrawalProposed(amount_);
 
         _useCheckedNonce(sender, nonce);
     }
@@ -135,13 +135,13 @@ contract MultisigWalletNonce is OwnableMultisigNonce {
 
     function withdrawBitmap() public view returns (uint256 w) {
         assembly {
-            w := sload(_withdrawalBitmap.slot)
+            w := sload(_withdrawBitmap.slot)
         }
     }
 
     function abortWithdrawBitmap() public view returns (uint256 a) {
         assembly {
-            a := sload(_abortWithdrawalBitmap.slot)
+            a := sload(_abortWithdrawBitmap.slot)
         }
     }
 
@@ -165,10 +165,9 @@ contract MultisigWalletNonce is OwnableMultisigNonce {
 
         assembly {
             sstore(_withdrawAllBitmap.slot, or(bm, shl(add(i, 1), 1)))
-            sstore(_amount.slot, amount)
         }
 
-        emit WithdrawalProposed(amount);
+        emit WithdrawalProposed(address(this).balance);
 
         _useCheckedNonce(sender, nonce);
     }
@@ -223,13 +222,13 @@ contract MultisigWalletNonce is OwnableMultisigNonce {
 
     function withdrawAllBitmap() public view returns (uint256 w) {
         assembly {
-            w := sload(_withdrawalAllBitmap.slot)
+            w := sload(_withdrawAllBitmap.slot)
         }
     }
 
     function abortWithdrawAllBitmap() public view returns (uint256 a) {
         assembly {
-            a := sload(_abortWithdrawalAllBitmap.slot)
+            a := sload(_abortWithdrawAllBitmap.slot)
         }
     }
 }

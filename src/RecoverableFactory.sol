@@ -4,11 +4,11 @@ pragma solidity ^0.8.13;
 import {MultisigWalletNonce} from "./MultisigWalletNonce.sol";
 import {Recoverable} from "./Recoverable.sol";
 
-contract RecoverableFactory is OwnableMultisigNonce {
+contract RecoverableFactory is MultisigWalletNonce {
     /* ********************************************************************** */
     /* State Variables                                                        */
     /* ********************************************************************** */
-    uint256 private _fee;
+    uint256 private _fee; // 0.025 ether for now
     address[] private _recoveries;
     mapping(address => address) private _recoveryMap;
 
@@ -21,15 +21,7 @@ contract RecoverableFactory is OwnableMultisigNonce {
     /* Errors                                                                 */
     /* ********************************************************************** */
     error InsufficientFee();
-    error InvalidAddress(address);
     error RecoveryExists(address owner, address recovery);
-
-    /* ********************************************************************** */
-    /* Fallback Functions                                                     */
-    /* ********************************************************************** */
-    receive() external payable {}
-
-    fallback() external payable {}
 
     /* ********************************************************************** */
     /* Constructor                                                            */
@@ -52,7 +44,7 @@ contract RecoverableFactory is OwnableMultisigNonce {
         }
 
         if (initialBackup == address(0)) {
-            revert InvalidAddress();
+            revert InvalidAddress(initialBackup);
         }
         address owner_ = _msgSender();
         if (recoveryAddress(owner_) != address(0)) {
