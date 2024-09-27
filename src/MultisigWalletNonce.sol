@@ -27,6 +27,7 @@ contract MultisigWalletNonce is OwnableMultisigNonce, ReentrancyGuard {
     error WithdrawalNotProposed();
     error WithdrawalInProgress();
     error WithdrawalFailed();
+    error InsufficientBalance();
 
     /* ********************************************************************** */
     /* Fallback Functions                                                     */
@@ -110,6 +111,9 @@ contract MultisigWalletNonce is OwnableMultisigNonce, ReentrancyGuard {
         }
 
         uint256 amount_ = amount();
+        if (amount_ > address(this).balance) {
+            revert InsufficientBalance();
+        }
         address sender = _msgSender();
 
         assembly {
@@ -117,7 +121,7 @@ contract MultisigWalletNonce is OwnableMultisigNonce, ReentrancyGuard {
             sstore(_amount.slot, 0)
         }
 
-        (bool sent, ) = sender.call{value: amount_ == type(uint256).max ? address(this).balance : amount_}("");
+        (bool sent,) = sender.call{value: amount_ == type(uint256).max ? address(this).balance : amount_}("");
         if (sent == false) {
             revert WithdrawalFailed();
         }
