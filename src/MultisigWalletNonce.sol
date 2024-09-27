@@ -2,8 +2,10 @@
 pragma solidity ^0.8.13;
 
 import {OwnableMultisigNonce} from "./OwnableMultisigNonce.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {Test, console} from "forge-std/Test.sol";
 
-contract MultisigWalletNonce is OwnableMultisigNonce {
+contract MultisigWalletNonce is OwnableMultisigNonce, ReentrancyGuard {
     /* ********************************************************************** */
     /* State Variables                                                        */
     /* ********************************************************************** */
@@ -24,6 +26,7 @@ contract MultisigWalletNonce is OwnableMultisigNonce {
     /* ********************************************************************** */
     error WithdrawalNotProposed();
     error WithdrawalInProgress();
+    error WithdrawalFailed();
 
     /* ********************************************************************** */
     /* Fallback Functions                                                     */
@@ -50,10 +53,18 @@ contract MultisigWalletNonce is OwnableMultisigNonce {
     /* ********************************************************************** */
     /* Withdraw Functions                                                     */
     /* ********************************************************************** */
+    /**
+     * @dev Returns the amount of the proposed withdrawal.
+     */
     function amount() public view returns (uint256 a) {
         a = _amount;
     }
 
+    /**
+     * @dev Propose a withdrawal of `amount_` wei.
+     * @param amount_ The amount of wei to withdraw. If amount_ is type(uint256).max, the entire balance will be withdrawn.
+     * @param nonce The nonce to use.
+     */
     function proposeWithdraw(uint256 amount_, uint256 nonce) external onlyOwner {
         address sender = _msgSender();
         uint256 i = _signerIndex(sender);
@@ -61,9 +72,6 @@ contract MultisigWalletNonce is OwnableMultisigNonce {
             revert UnauthorizedAccount(sender);
         }
 
-        if (withdrawAllBitmap() != 1) {
-            revert WithdrawalInProgress();
-        }
         uint256 bm = withdrawBitmap();
         if (bm != 1) {
             revert WithdrawalInProgress();
@@ -84,24 +92,19 @@ contract MultisigWalletNonce is OwnableMultisigNonce {
         uint256 i = _signerIndex(sender);
         if (i > 4) {
             revert UnauthorizedAccount(sender);
-        }
-
-        if (withdrawAllBitmap() != 1) {
-            revert WithdrawalInProgress();
-        }
-        uint256 bm = withdrawBitmap();
-        if (bm != 1) {
-            revert WithdrawalInProgress();
+        } else if (i == 0) {
+            revert UnauthorizedAccount(sender);
         }
 
         assembly {
+            let bm := sload(_withdrawBitmap.slot)
             sstore(_withdrawBitmap.slot, or(bm, shl(add(i, 1), 1)))
         }
 
         _useCheckedNonce(sender, nonce);
     }
 
-    function withdraw(uint256 nonce) external onlyOwner {
+    function withdraw(uint256 nonce) external onlyOwner nonReentrant {
         if (_bitmapSigned(withdrawBitmap(), 3) == false) {
             revert NotEnoughSignatures();
         }
@@ -109,11 +112,14 @@ contract MultisigWalletNonce is OwnableMultisigNonce {
         uint256 amount_ = amount();
         address sender = _msgSender();
 
-        payable(sender).transfer(amount_);
-
         assembly {
             sstore(_withdrawBitmap.slot, 1)
             sstore(_amount.slot, 0)
+        }
+
+        (bool sent, ) = sender.call{value: amount_ == type(uint256).max ? address(this).balance : amount_}("");
+        if (sent == false) {
+            revert WithdrawalFailed();
         }
 
         emit Withdrawal(amount_);
@@ -130,102 +136,9 @@ contract MultisigWalletNonce is OwnableMultisigNonce {
         _useCheckedNonce(_msgSender(), nonce);
     }
 
-    function withdrawBitmap() public view returns (uint256 w) {
+    function withdrawBitmap() internal view returns (uint256 w) {
         assembly {
             w := sload(_withdrawBitmap.slot)
-        }
-    }
-
-    function abortWithdrawBitmap() public view returns (uint256 a) {
-        assembly {
-            a := sload(_abortWithdrawBitmap.slot)
-        }
-    }
-
-    /* ********************************************************************** */
-    /* Withdraw All Functions                                                 */
-    /* ********************************************************************** */
-    function proposeWithdrawAll(uint256 nonce) external onlyOwner {
-        address sender = _msgSender();
-        uint256 i = _signerIndex(sender);
-        if (i > 4) {
-            revert UnauthorizedAccount(sender);
-        }
-
-        if (withdrawBitmap() != 1) {
-            revert WithdrawalInProgress();
-        }
-        uint256 bm = withdrawAllBitmap();
-        if (bm != 1) {
-            revert WithdrawalInProgress();
-        }
-
-        assembly {
-            sstore(_withdrawAllBitmap.slot, or(bm, shl(add(i, 1), 1)))
-        }
-
-        emit WithdrawalProposed(address(this).balance);
-
-        _useCheckedNonce(sender, nonce);
-    }
-
-    function confirmWithdrawAll(uint256 nonce) external {
-        address sender = _msgSender();
-        uint256 i = _signerIndex(sender);
-        if (i > 4) {
-            revert UnauthorizedAccount(sender);
-        }
-
-        if (withdrawBitmap() != 1) {
-            revert WithdrawalInProgress();
-        }
-        uint256 bm = withdrawAllBitmap();
-        if (bm != 1) {
-            revert WithdrawalInProgress();
-        }
-
-        assembly {
-            sstore(_withdrawAllBitmap.slot, or(bm, shl(add(i, 1), 1)))
-        }
-
-        _useCheckedNonce(sender, nonce);
-    }
-
-    function withdrawAll(uint256 nonce) external onlyOwner {
-        if (_bitmapSigned(withdrawAllBitmap(), 3) == false) {
-            revert NotEnoughSignatures();
-        }
-
-        uint256 amount_ = address(this).balance;
-
-        payable(_msgSender()).transfer(amount_);
-
-        assembly {
-            sstore(_withdrawAllBitmap.slot, 1)
-        }
-
-        emit Withdrawal(amount_);
-
-        _useCheckedNonce(_msgSender(), nonce);
-    }
-
-    function abortWithdrawAll(uint256 nonce) external onlyOwner {
-        assembly {
-            sstore(_withdrawAllBitmap.slot, 1)
-        }
-
-        _useCheckedNonce(_msgSender(), nonce);
-    }
-
-    function withdrawAllBitmap() public view returns (uint256 w) {
-        assembly {
-            w := sload(_withdrawAllBitmap.slot)
-        }
-    }
-
-    function abortWithdrawAllBitmap() public view returns (uint256 a) {
-        assembly {
-            a := sload(_abortWithdrawAllBitmap.slot)
         }
     }
 }
