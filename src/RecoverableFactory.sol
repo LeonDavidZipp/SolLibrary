@@ -3,15 +3,14 @@ pragma solidity ^0.8.13;
 
 import {MultisigWalletNonce} from "./MultisigWalletNonce.sol";
 import {Recoverable} from "./Recoverable.sol";
-import {Test, console} from "forge-std/Test.sol";
 
 contract RecoverableFactory is MultisigWalletNonce {
     /* ********************************************************************** */
     /* State Variables                                                        */
     /* ********************************************************************** */
     uint256 private _fee; // 0.025 ether for now
-    address[] private _recoveries;
-    mapping(address => address) private _recoveryMap;
+    address[] private _recoveries; // recovery contracts
+    mapping(address => address) private _recoveryMap; // owner => recovery contract
 
     /* ********************************************************************** */
     /* Events                                                                 */
@@ -23,6 +22,13 @@ contract RecoverableFactory is MultisigWalletNonce {
     /* ********************************************************************** */
     error InsufficientFee();
     error RecoveryExists(address owner, address recovery);
+
+    /* ********************************************************************** */
+    /* Fallback Functions                                                     */
+    /* ********************************************************************** */
+    // receive() external payable {}
+
+    // fallback() external payable {}
 
     /* ********************************************************************** */
     /* Constructor                                                            */
@@ -87,7 +93,6 @@ contract RecoverableFactory is MultisigWalletNonce {
     }
 
     function setFee(uint256 newFee, uint256 nonce) external onlyOwner notBlocked {
-        console.log("isBlocked", isBlocked());
         assembly {
             sstore(_fee.slot, newFee)
         }
