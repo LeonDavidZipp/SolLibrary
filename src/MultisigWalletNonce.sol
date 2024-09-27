@@ -3,7 +3,6 @@ pragma solidity ^0.8.13;
 
 import {OwnableMultisigNonce} from "./OwnableMultisigNonce.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {Test, console} from "forge-std/Test.sol";
 
 contract MultisigWalletNonce is OwnableMultisigNonce, ReentrancyGuard {
     /* ********************************************************************** */
