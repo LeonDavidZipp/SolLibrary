@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {TwoUnequalOwnable} from "../src/TwoUnequalOwnable.sol";
+import {TwoUnequalOwnable} from "ownership/TwoUnequalOwnable.sol";
 
 contract CounterTest is Test {
     address owner = address(0x1);

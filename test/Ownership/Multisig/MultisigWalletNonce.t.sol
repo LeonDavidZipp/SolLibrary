@@ -2,8 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {MultisigWalletNonce} from "../src//MultisigWalletNonce.sol";
-import {OwnableMultisig} from "../src/OwnableMultisig.sol";
+import {MultisigWalletNonce} from "multisig/MultisigWalletNonce.sol";
 
 contract MultisigWalletNonceTest is Test {
     MultisigWalletNonce wallet;

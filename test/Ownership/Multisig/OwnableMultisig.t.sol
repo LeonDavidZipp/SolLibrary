@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {OwnableMultisig} from "../src/OwnableMultisigTest.sol";
+import {OwnableMultisig} from "multisig/OwnableMultisigTest.sol";
 
 contract OwnableMultisigTest is Test {
     OwnableMultisig public multisig;

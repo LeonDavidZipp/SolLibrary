@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {RecoverableFactory} from "../src/RecoverableFactory.sol";
+import {RecoverableFactory} from "recovery/RecoverableFactory.sol";
 
 contract RecoverableFactoryTest is Test {
     address[4] signers = [address(0x4), address(0x5), address(0x6), address(0x7)];
