@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {MultisigWalletNonce} from "./MultisigWalletNonce.sol";
+import {MultisigWalletNonce} from "multisig/MultisigWalletNonce.sol";
 import {Recoverable} from "./Recoverable.sol";
 
 contract RecoverableFactory is MultisigWalletNonce {

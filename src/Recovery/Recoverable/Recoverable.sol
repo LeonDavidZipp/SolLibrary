@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {TwoUnequalOwnable} from "./TwoUnequalOwnable.sol";
+import {TwoUnequalOwnable} from "ownership/TwoUnequalOwnable.sol";
 import {IAllowanceTransfer} from "permit2/src/interfaces/IAllowanceTransfer.sol";
 
 /**

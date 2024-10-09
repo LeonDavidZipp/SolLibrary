@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {MultisigWalletNonce} from "./MultisigWalletNonce.sol";
+import {MultisigWalletNonce} from "multisig/MultisigWalletNonce.sol";
 import {IAllowanceTransfer} from "permit2/src/interfaces/IAllowanceTransfer.sol";
 
 contract MultiRecoverable is MultisigWalletNonce {
@@ -19,6 +19,7 @@ contract MultiRecoverable is MultisigWalletNonce {
     /* ********************************************************************** */
     event FundsTransferred(address indexed account, address indexed backup);
     event Registered(address indexed account, address indexed backup);
+    event Unregistered(address indexed account);
     event BackupChanged(address indexed account, address indexed newBackup);
 
     /* ********************************************************************** */
@@ -27,6 +28,8 @@ contract MultiRecoverable is MultisigWalletNonce {
     error InsufficientFee();
     error AlreadyRegistered(address account);
     error NotRegistered(address account);
+    error InvalidFromAccount(address account);
+    error InvalidToAccount(address account);
 
     /* ********************************************************************** */
     /* Constructor                                                            */
@@ -76,7 +79,7 @@ contract MultiRecoverable is MultisigWalletNonce {
         permit2().permit(sender, permitBatch, signature);
 
         unchecked {
-            address[] storage accounts_ = accounts();
+            address[] storage accounts_ = _accounts;
             uint256 len = accounts_.length;
             for (uint256 i; i < len; ++i) {
                 if (accounts_[i] == sender) {
@@ -89,15 +92,19 @@ contract MultiRecoverable is MultisigWalletNonce {
         delete _accountToBackup[sender];
         delete _backupToAccount[backup(sender)];
 
-        emit Registered(sender, initialBackup);
+        emit Unregistered(sender);
     }
 
     function accounts() public view returns (address[] memory) {
         return _accounts;
     }
 
-    function account(address backup) public view returns (address a) {
-        a = _backupToAccount[backup];
+    function account(address _backup) public view returns (address a) {
+        a = _backupToAccount[_backup];
+    }
+
+    function accountCount() public view returns (uint256 c) {
+        c = accounts().length;
     }
 
     /* ********************************************************************** */
@@ -122,8 +129,8 @@ contract MultiRecoverable is MultisigWalletNonce {
         a = _accountToBackup[_msgSender()];
     }
 
-    function backup(address account) public view returns (address a) {
-        a = _accountToBackup[account];
+    function backup(address _account) public view returns (address a) {
+        a = _accountToBackup[_account];
     }
 
     function changeBackup(address newBackup, uint256 nonce) external {
@@ -154,12 +161,12 @@ contract MultiRecoverable is MultisigWalletNonce {
 
         unchecked {
             uint256 len = transferDetails.length;
-            for (uint256 i; i = 0; ++i) {
-                if (transferDetails.from != account_) {
-                    revert InvalidAccount(transferDetails.from);
+            for (uint256 i; i < len; ++i) {
+                if (transferDetails[i].from != account_) {
+                    revert InvalidFromAccount(transferDetails[i].from);
                 }
-                if (transferDetails.to != sender) {
-                    revert InvalidAddress(transferDetails.to);
+                if (transferDetails[i].to != sender) {
+                    revert InvalidToAccount(transferDetails[i].to);
                 }
             }
         }

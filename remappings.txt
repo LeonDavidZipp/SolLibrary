@@ -6,3 +6,7 @@ forge-std/=lib/forge-std/src/
 openzeppelin-contracts/=lib/openzeppelin-contracts/
 permit2/=lib/permit2/
 solmate/=lib/permit2/lib/solmate/
+ownership/=src/Ownership/
+multisig/=src/Ownership/Multisig/
+recovery/=src/Recovery/
+recoverable/=src/Recovery/Recoverable/
