@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {Recoverable} from "recovery/Recoverable.sol";
+import {Recoverable} from "recoverable/Recoverable.sol";
 import {IAllowanceTransfer} from "permit2/src/interfaces/IAllowanceTransfer.sol";
 import {DeployPermit2} from "permit2/test/utils/DeployPermit2.sol";
 import {PermitSignature} from "permit2/test/utils/PermitSignature.sol";
