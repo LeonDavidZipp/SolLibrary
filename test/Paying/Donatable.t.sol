@@ -24,9 +24,9 @@ contract DonatableTest is Test {
     Token1 public token1;
     Token2 public token2;
 
-    receive() external payable { }
+    receive() external payable {}
 
-    fallback() external payable { }
+    fallback() external payable {}
 
     function setUp() public {
         donatable = new Donatable(address(this));
@@ -36,8 +36,7 @@ contract DonatableTest is Test {
 
     function test_withdraw_eth() public {
         uint256 oldBalance = address(this).balance;
-        (bool success,) =
-            payable(address(donatable)).call{ value: amountEth }("some data");
+        (bool success,) = payable(address(donatable)).call{value: amountEth}("some data");
 
         assertTrue(success);
 
@@ -47,8 +46,7 @@ contract DonatableTest is Test {
     }
 
     function testFail_withdraw_eth_notOwner() public {
-        (bool success,) =
-            payable(address(donatable)).call{ value: amountEth }("some data");
+        (bool success,) = payable(address(donatable)).call{value: amountEth}("some data");
 
         assertTrue(success);
 

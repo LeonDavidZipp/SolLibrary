@@ -9,15 +9,14 @@ contract Donatable is Ownable, Payable {
     /* ------------------------------------------------------------------ */
     /* Constructor                                                        */
     /* ------------------------------------------------------------------ */
-    constructor(address owner_) Ownable(owner_) { }
+    constructor(address owner_) Ownable(owner_) {}
 
     /* ------------------------------------------------------------------ */
     /* Donation Functions                                                 */
     /* ------------------------------------------------------------------ */
     /// @notice withdraw all eth
     function withdraw() external onlyOwner {
-        (bool success,) =
-            payable(_msgSender()).call{ value: address(this).balance }("");
+        (bool success,) = payable(_msgSender()).call{value: address(this).balance}("");
         if (!success) {
             revert();
         }
@@ -28,9 +27,7 @@ contract Donatable is Ownable, Payable {
         unchecked {
             uint256 len = tokens.length;
             for (uint256 i = 0; i < len; ++i) {
-                ERC20(tokens[i]).transfer(
-                    _msgSender(), ERC20(tokens[i]).balanceOf(address(this))
-                );
+                ERC20(tokens[i]).transfer(_msgSender(), ERC20(tokens[i]).balanceOf(address(this)));
             }
         }
     }

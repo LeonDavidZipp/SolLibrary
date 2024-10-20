@@ -9,9 +9,9 @@ contract PayableTest is Test {
     uint256 public constant transactionFee = 21_000;
     Payable public pay;
 
-    receive() external payable { }
+    receive() external payable {}
 
-    fallback() external payable { }
+    fallback() external payable {}
 
     function setUp() public {
         pay = new Payable();
@@ -19,25 +19,19 @@ contract PayableTest is Test {
 
     function test_receive() public {
         uint256 oldBalance = address(this).balance;
-        (bool success,) =
-            payable(address(pay)).call{ value: amountEth }("");
+        (bool success,) = payable(address(pay)).call{value: amountEth}("");
 
         assertTrue(success);
-        assertApproxEqAbs(
-            address(this).balance, oldBalance - amountEth, transactionFee
-        );
+        assertApproxEqAbs(address(this).balance, oldBalance - amountEth, transactionFee);
         assertEq(address(pay).balance, amountEth);
     }
 
     function test_fallback() public {
         uint256 oldBalance = address(this).balance;
-        (bool success,) =
-            payable(address(pay)).call{ value: amountEth }("some data");
+        (bool success,) = payable(address(pay)).call{value: amountEth}("some data");
 
         assertTrue(success);
-        assertApproxEqAbs(
-            address(this).balance, oldBalance - amountEth, transactionFee
-        );
+        assertApproxEqAbs(address(this).balance, oldBalance - amountEth, transactionFee);
         assertEq(address(pay).balance, amountEth);
     }
 }

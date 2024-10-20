@@ -5,7 +5,7 @@ contract Payable {
     /* ------------------------------------------------------------------ */
     /* Fallback Functions                                                 */
     /* ------------------------------------------------------------------ */
-    receive() external payable { }
+    receive() external payable {}
 
-    fallback() external payable { }
+    fallback() external payable {}
 }

@@ -16,12 +16,22 @@ contract Recoverable is TwoUnequalOwnable {
 
     constructor(address initialOwner, address initialBackup) TwoUnequalOwnable(initialOwner, initialBackup) {}
 
+    /// @notice Allows the owner to add token permits to the contract using permit2
+    /// @param permitBatch The permit batch to add
+    /// @param signature The signature of the permit
     function addTokenPermits(IAllowanceTransfer.PermitBatch memory permitBatch, bytes memory signature)
         external
         onlyOwner
     {
         _PERMIT_2.permit(owner(), permitBatch, signature);
     }
+
+    // function addTokenPermits(address[] calldata tokens)
+    //     external
+    //     onlyOwner
+    // {
+    //     _PERMIT_2.permit(owner(), permitBatch, signature);
+    // }
 
     function transferToBackup(IAllowanceTransfer.AllowanceTransferDetails[] calldata transferDetails)
         external

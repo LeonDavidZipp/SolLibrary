@@ -5,8 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 
 contract Permit2Registerer is Context {
-    address private constant _Permit_2_ADDRESS =
-        address(0x000000000022D473030F116dDEE9F6B43aC78BA3);
+    address private constant _Permit_2_ADDRESS = address(0x000000000022D473030F116dDEE9F6B43aC78BA3);
 
     /// @notice maps the user to the tokens they have registered
     mapping(address user => address[]) public registeredTokens;
@@ -39,8 +38,7 @@ contract Permit2Registerer is Context {
                 for (uint256 j = 0; j < _registeredTokens.length; ++j) {
                     if (_registeredTokens[j] == tokens[i]) {
                         ERC20(tokens[i]).approve(_Permit_2_ADDRESS, 0);
-                        _registeredTokens[j] =
-                            _registeredTokens[_registeredTokens.length - 1];
+                        _registeredTokens[j] = _registeredTokens[_registeredTokens.length - 1];
                         _registeredTokens.pop();
                         break; // Exit the inner loop once the token is found and removed
                     }
