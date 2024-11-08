@@ -8,6 +8,7 @@ permit2/=lib/permit2/
 solmate/=lib/permit2/lib/solmate/
 ownership/=src/Ownership/
 paying/=src/Paying/
+structs/=src/Structs
 permit2ext/=src/Permit2Extensions/
 multisig/=src/Ownership/Multisig/
 recovery/=src/Recovery/
