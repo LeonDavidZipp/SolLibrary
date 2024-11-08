@@ -22,8 +22,16 @@ library BitMaps {
         bitmap._data |= (1 << index);
     }
 
+    function setAll(BitMap storage bitmap) internal {
+        bitmap._data = type(uint256).max;
+    }
+
     function unset(BitMap storage bitmap, uint256 index) internal {
         bitmap._data &= ~(1 << index);
+    }
+
+    function unsetAll(BitMap storage bitmap) internal {
+        bitmap._data = 0;
     }
 
     function count(BitMap storage bitmap) internal view returns (uint256 c) {
@@ -34,10 +42,13 @@ library BitMaps {
                 data >>= 1;
             }
         }
-        return c;
     }
 
-    function checkWhetherNBitsFrom0Set(BitMap storage bitmap, uint256 n) internal view returns (bool) {
-        return (bitmap._data == (2 ** n) - 1);
+    function checkWhetherAllNBitsFrom0Set(BitMap storage bitmap, uint256 n) internal view returns (bool b) {
+        if (n < 256) {
+            b = bitmap._data == (2 ** n) - 1;
+        } else {
+            b = bitmap._data == type(uint256).max;
+        }
     }
 }
