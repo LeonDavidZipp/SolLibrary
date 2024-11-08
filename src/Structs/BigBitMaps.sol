@@ -30,6 +30,14 @@ library BitMaps {
         bitmap._data[dataIndex] |= (1 << bitIndex);
     }
 
+    function setAll(BitMap storage bitmap) internal {
+        unchecked {
+            for (uint256 i = 0; i < bitmap.len; ++i) {
+                bitmap._data[i] = type(uint256).max;
+            }
+        }
+    }
+
     function unset(BitMap storage bitmap, uint256 index) internal {
         uint256 dataIndex = index / 256;
         uint256 bitIndex = index % 256;
