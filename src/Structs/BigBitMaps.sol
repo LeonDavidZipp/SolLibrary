@@ -1,22 +1,23 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-library BitMaps {
-    struct BitMap {
+library BigBitMaps {
+    error IndexOutOfBound(uint256 index);
+    struct BigBitMap {
         mapping(uint256 index => uint256) _data;
         uint256 len; // amount of uint256 in _data
     }
 
-    function get(BitMap storage bitmap, uint256 index) internal view returns (bool) {
+    function get(BigBitMap storage bitmap, uint256 index) internal view returns (bool) {
         uint256 dataIndex = index / 256;
         if (dataIndex >= bitmap.len) {
-            return false;
+            revert IndexOutOfBound(index);
         }
         uint256 bitIndex = index % 256;
         return bitmap._data[dataIndex] & (1 << bitIndex) != 0;
     }
 
-    function setTo(BitMap storage bitmap, uint256 index, bool value) internal{
+    function setTo(BigBitMap storage bitmap, uint256 index, bool value) internal{
         if (value) {
             set(bitmap, index);
         } else {
@@ -24,13 +25,16 @@ library BitMaps {
         }
     }
 
-    function set(BitMap storage bitmap, uint256 index) internal {
+    function set(BigBitMap storage bitmap, uint256 index) internal {
         uint256 dataIndex = index / 256;
+        if (dataIndex >= bitmap.len) {
+            revert IndexOutOfBound(index);
+        }
         uint256 bitIndex = index % 256;
         bitmap._data[dataIndex] |= (1 << bitIndex);
     }
 
-    function setAll(BitMap storage bitmap) internal {
+    function setAll(BigBitMap storage bitmap) internal {
         unchecked {
             for (uint256 i = 0; i < bitmap.len; ++i) {
                 bitmap._data[i] = type(uint256).max;
@@ -38,13 +42,16 @@ library BitMaps {
         }
     }
 
-    function unset(BitMap storage bitmap, uint256 index) internal {
+    function unset(BigBitMap storage bitmap, uint256 index) internal {
         uint256 dataIndex = index / 256;
+        if (dataIndex >= bitmap.len) {
+            revert IndexOutOfBound(index);
+        }
         uint256 bitIndex = index % 256;
         bitmap._data[dataIndex] &= ~(1 << bitIndex);
     }
 
-    function unsetAll(BitMap storage bitmap) internal {
+    function unsetAll(BigBitMap storage bitmap) internal {
         unchecked {
             for (uint256 i = 0; i < bitmap.len; ++i) {
                 bitmap._data[i] = 0;
@@ -52,7 +59,7 @@ library BitMaps {
         }
     }
 
-    function count(BitMap storage bitmap) internal view returns (uint256 c) {
+    function count(BigBitMap storage bitmap) internal view returns (uint256 c) {
         unchecked {
             for (uint256 i = 0; i < bitmap.len; ++i) {
                 uint256 data = bitmap._data[i];
@@ -62,5 +69,21 @@ library BitMaps {
                 }
             }
         }
+    }
+
+    function length(BigBitMap storage bitmap) internal view returns (uint256) {
+        return bitmap.len;
+    }
+
+    function setLength(BigBitMap storage bitmap, uint256 len) internal {
+        uint256 oldLen = bitmap.len;
+        if (oldLen > len) {
+            unchecked {
+                for (uint256 i = len; i < oldLen; ++i) {
+                    delete bitmap._data[i];
+                }
+            }
+        }
+        bitmap.len = len;
     }
 }
