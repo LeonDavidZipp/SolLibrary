@@ -6,8 +6,14 @@ library BitMaps {
         uint256 _data;
     }
 
-    function get(BitMap storage bitmap, uint256 index) internal view returns (bool) {
-        return bitmap._data & (1 << index) != 0;
+    function get(BitMap storage bitmap, uint256 index) internal view returns (bool b) {
+        // return bitmap._data & (1 << index) != 0;
+        uint256 data;
+        assembly ("memory-safe") {
+            data := sload(bitmap.slot)
+            b:= and(data, shl(1, index))
+        }
+        return data & (1 << index) != 0;
     }
 
     function setTo(BitMap storage bitmap, uint256 index, bool value) internal{
@@ -19,15 +25,30 @@ library BitMaps {
     }
 
     function set(BitMap storage bitmap, uint256 index) internal {
-        bitmap._data |= (1 << index);
+        // bitmap._data |= (1 << index);
+        assembly ("memory-safe") {
+            let data := sload(bitmap.slot)
+            data := or(data, shl(index, 1))
+            sstore(bitmap.slot, data)
+        }
     }
 
     function setAll(BitMap storage bitmap) internal {
-        bitmap._data = type(uint256).max;
+        // bitmap._data = type(uint256).max;
+        assembly ("memory-safe") {
+            let data := sload(bitmap.slot)
+            sstore(bitmap.slot, diff(pow(2, 256), 1))
+            sstore(bitmap.slot, data)
+        }
     }
 
     function unset(BitMap storage bitmap, uint256 index) internal {
-        bitmap._data &= ~(1 << index);
+        // bitmap._data &= ~(1 << index);
+        assembly {
+            let data := sload(bitmap.slot)
+            data := and(data, not(shl(index, 1)))
+            sstore(bitmap.slot, data)
+        }
     }
 
     function unsetAll(BitMap storage bitmap) internal {
