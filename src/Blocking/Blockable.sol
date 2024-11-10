@@ -4,22 +4,22 @@ pragma solidity ^0.8.13;
 /// @title Blockable
 /// @notice A contract that can be blocked
 contract Blockable {
-    bool private _blocked;
+    bool private _blockd;
 
     event Blocked();
     event Unblocked();
 
-    function blocked() public view returns (bool) {
-        return _blocked;
+    function _blocked() internal view returns (bool) {
+        return _blockd;
     }
 
     function _block() internal {
-        _blocked = true;
+        _blockd = true;
         emit Blocked();
     }
 
     function _unblock() internal {
-        _blocked = false;
+        _blockd = false;
         emit Unblocked();
     }
 }

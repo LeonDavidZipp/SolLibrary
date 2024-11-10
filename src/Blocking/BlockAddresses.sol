@@ -9,7 +9,7 @@ contract BlockAddresses {
     event BlockedAddress(address addr);
     event UnblockedAddress(address addr);
 
-    function isAddressBlocked(address addr) public view returns (bool) {
+    function _isAddressBlocked(address addr) internal view returns (bool) {
         return _blockedAddresses[addr];
     }
 
