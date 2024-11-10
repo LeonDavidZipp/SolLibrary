@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "../Algorithms/Search.sol";
+import "algorithms/Search.sol";
 
 library Mappings {
     using Search for uint256[];
