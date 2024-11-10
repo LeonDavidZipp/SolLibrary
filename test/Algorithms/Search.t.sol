@@ -7,7 +7,7 @@ import "forge-std/Test.sol";
 contract SearchTest is Test {
     using Search for uint256[];
 
-    uint256[] private arr = [1, 2, 3, 4, 5, 6, 1000 , 300, 66];
+    uint256[] private arr = [1, 2, 3, 4, 5, 6, 1000, 300, 66];
 
     function setUp() public {}
 

@@ -6,9 +6,9 @@ import "forge-std/Test.sol";
 
 contract BitMapsTest is Test {
     using BitMaps for BitMaps.BitMap;
+
     BitMaps.BitMap public bm;
     BitMaps.BitMap public bm2;
-
 
     receive() external payable {}
 

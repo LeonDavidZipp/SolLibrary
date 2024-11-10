@@ -6,6 +6,7 @@ import "forge-std/Test.sol";
 
 contract BigBitMapsTest is Test {
     using BigBitMaps for BigBitMaps.BigBitMap;
+
     BigBitMaps.BigBitMap public bm;
     BigBitMaps.BigBitMap public bm2;
 

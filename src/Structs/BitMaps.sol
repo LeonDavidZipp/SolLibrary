@@ -10,7 +10,7 @@ library BitMaps {
         return bitmap._data & (1 << index) != 0;
     }
 
-    function setTo(BitMap storage bitmap, uint256 index, bool value) internal{
+    function setTo(BitMap storage bitmap, uint256 index, bool value) internal {
         if (value) {
             set(bitmap, index);
         } else {

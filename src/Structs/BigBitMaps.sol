@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 library BigBitMaps {
     error IndexOutOfBound(uint256 index);
+
     struct BigBitMap {
         mapping(uint256 index => uint256) _data;
         uint256 len; // amount of uint256 in _data
@@ -17,7 +18,7 @@ library BigBitMaps {
         return bitmap._data[dataIndex] & (1 << bitIndex) != 0;
     }
 
-    function setTo(BigBitMap storage bitmap, uint256 index, bool value) internal{
+    function setTo(BigBitMap storage bitmap, uint256 index, bool value) internal {
         if (value) {
             set(bitmap, index);
         } else {

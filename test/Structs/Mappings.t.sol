@@ -6,6 +6,7 @@ import "forge-std/Test.sol";
 
 contract MappingsTest is Test {
     using Mappings for Mappings.UintUintMap;
+
     Mappings.UintUintMap private map;
 
     function setUp() public {}
